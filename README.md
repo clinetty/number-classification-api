@@ -92,3 +92,4 @@ http://127.0.0.1:8000/api/classify-number?number=371
 ```
 
 ## Deployment link
+https://number-classification-api-opdl.onrender.com/api/classify-number?number=371
