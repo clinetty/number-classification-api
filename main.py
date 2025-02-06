@@ -31,9 +31,10 @@ def check_properties(number: Union[int, float]) -> list:
     return properties
 
 def get_fun_fact(number: Union[int, float]) -> str:
-    if number == 371:
+    abs_number = abs(int(number))  # Use absolute value for fun fact
+    if abs_number == 371:
         return "371 is an Armstrong number because 3^3 + 7^3 + 1^3 = 371"
-    return f"{number} is a special number."
+    return f"{abs_number} is a special number."
 
 def classify_number(number: Union[int, float]):
     is_prime = check_prime(number)
