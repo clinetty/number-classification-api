@@ -56,6 +56,9 @@ async def get_number_classification(number: str):
     try:
         num = float(number)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid number format.")
-    
+        return {
+            "number": number,
+            "error": True
+        }
+
     return classify_number(num)
