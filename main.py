@@ -1,47 +1,64 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import math
+from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import requests
 
 app = FastAPI()
 
-class NumberRequest(BaseModel):
-    number: float 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def is_prime(n: int) -> bool:
+    if n < 2:
+        return False
+    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def is_perfect(n: int) -> bool:
+    return sum(i for i in range(1, n) if n % i == 0) == n
+
+def is_armstrong(n: int) -> bool:
+    digits = [int(d) for d in str(n)]
+    return sum(d ** len(digits) for d in digits) == n
+
+def get_fun_fact(n: int) -> str:
+    if is_armstrong(n):
+        digits = [int(d) for d in str(n)]
+        equation = " + ".join([f"{d}^{len(digits)}" for d in digits])
+        return f"{n} is an Armstrong number because {equation} = {n}"
+    else:
+        response = requests.get(f"http://numbersapi.com/{n}/math?json")
+        return response.json().get("text", "No fun fact available.")
 
 @app.get("/api/classify-number")
-async def classify_number(request: NumberRequest):
-    number = request.number
+def classify_number(number: str = Query(..., description="The number to classify")):
+    if not number.lstrip("-").isdigit():
+        return JSONResponse(
+            status_code=400,
+            content={"number": number, "error": True},
+        )
+    
+    number = int(number)
+    properties = ["odd" if number % 2 else "even"]
+    if is_armstrong(number):
+        properties.insert(0, "armstrong")
 
-    if not isinstance(number, (int, float)):
-        raise HTTPException(status_code=400, detail="Number must be numeric.")
+    # Formatted digit_sum with the comment at the end, no comma after the comment
+    digit_sum = f"{sum(int(digit) for digit in str(abs(number)))} // sum of its digits"
 
-    def is_prime(num):
-        if num < 2:
-            return False
-        for i in range(2, int(math.sqrt(num)) + 1):
-            if num % i == 0:
-                return False
-        return True
-
-    def is_perfect(num):
-        divisors = [i for i in range(1, num) if num % i == 0]
-        return sum(divisors) == num
-
-    def digit_sum(num):
-        return sum(int(digit) for digit in str(abs(num)))
-
-    def get_fun_fact(num):
-        digits = str(abs(num))
-        power = len(digits)
-        sum_of_powers = sum(int(digit) ** power for digit in digits)
-        if sum_of_powers == abs(num):
-            return f"{num} is an Armstrong number because " + " + ".join([f"{d}^{power}" for d in digits]) + f" = {num}"
-        return f"{num} is a special number."
-
-    return {
+    response = {
         "number": number,
         "is_prime": is_prime(number),
         "is_perfect": is_perfect(number),
-        "properties": ["armstrong" if get_fun_fact(number).startswith(f"{number} is an Armstrong") else "odd" if number % 2 != 0 else "even"],
-        "digit_sum": digit_sum(number),
-        "fun_fact": get_fun_fact(number)
+        "properties": properties,
+        "digit_sum": digit_sum,  # sum of digits with the comment
+        "fun_fact": get_fun_fact(number),
     }
+    return response
