@@ -5,7 +5,7 @@ import math
 app = FastAPI()
 
 class NumberRequest(BaseModel):
-    number: float
+    number: float 
 
 @app.get("/api/classify-number")
 async def classify_number(request: NumberRequest):
