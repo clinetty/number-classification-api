@@ -39,41 +39,26 @@ def get_fun_fact(n: int) -> str:
 
 @app.get("/api/classify-number")
 def classify_number(number: str = Query(..., description="The number to classify")):
-    try:
-        # Try to convert the input to a float first
-        number_float = float(number)
-        
-        # If the input is a floating-point number, return an error
-        if not number_float.is_integer():
-            return JSONResponse(
-                status_code=400,
-                content={"number": number, "error": "Floating-point numbers are not supported."},
-            )
-        
-        # Convert to integer
-        number_int = int(number_float)
-        
-        # Classify the number
-        properties = ["odd" if number_int % 2 else "even"]
-        if is_armstrong(number_int):
-            properties.insert(0, "armstrong")
-
-        # Formatted digit_sum with the comment at the end, no comma after the comment
-        digit_sum = f"{sum(int(digit) for digit in str(abs(number_int)))} // sum of its digits"
-
-        response = {
-            "number": number_int,
-            "is_prime": is_prime(number_int),
-            "is_perfect": is_perfect(number_int),
-            "properties": properties,
-            "digit_sum": digit_sum,  # sum of digits with the comment
-            "fun_fact": get_fun_fact(number_int),
-        }
-        return response
-    
-    except ValueError:
-        # If the input cannot be converted to a float, return an error
+    if not number.lstrip("-").isdigit():
         return JSONResponse(
             status_code=400,
-            content={"number": number, "error": "Invalid number format."},
+            content={"number": number, "error": True},
         )
+    
+    number = int(number)
+    properties = ["odd" if number % 2 else "even"]
+    if is_armstrong(number):
+        properties.insert(0, "armstrong")
+
+    # Formatted digit_sum with the comment at the end, no comma after the comment
+    digit_sum = f"{sum(int(digit) for digit in str(abs(number)))} // sum of its digits"
+
+    response = {
+        "number": number,
+        "is_prime": is_prime(number),
+        "is_perfect": is_perfect(number),
+        "properties": properties,
+        "digit_sum": digit_sum,  # sum of digits with the comment
+        "fun_fact": get_fun_fact(number),
+    }
+    return response
