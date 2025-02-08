@@ -22,7 +22,7 @@ def is_prime(n: int) -> bool:
     return True
 
 def is_perfect(n: int) -> bool:
-    return sum(i for i in range(1, n) if n % i == 0) == n
+    return n > 0 and sum(i for i in range(1, n) if n % i == 0) == n
 
 def is_armstrong(n: int) -> bool:
     digits = [int(d) for d in str(n)]
