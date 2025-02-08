@@ -50,15 +50,14 @@ def classify_number(number: str = Query(..., description="The number to classify
     if is_armstrong(number):
         properties.insert(0, "armstrong")
 
-    # Formatted digit_sum with the comment at the end, no comma after the comment
-    digit_sum = f"{sum(int(digit) for digit in str(abs(number)))} // sum of its digits"
+    digit_sum = sum(int(digit) for digit in str(abs(number)))  
 
     response = {
         "number": number,
         "is_prime": is_prime(number),
         "is_perfect": is_perfect(number),
         "properties": properties,
-        "digit_sum": digit_sum,  # sum of digits with the comment
+        "digit_sum": digit_sum,  
         "fun_fact": get_fun_fact(number),
     }
     return response
