@@ -34,15 +34,18 @@ def get_fun_fact(n: int) -> str:
         equation = " + ".join([f"{d}^{len(digits)}" for d in digits])
         return f"{n} is an Armstrong number because {equation} = {n}"
     else:
-        response = requests.get(f"http://numbersapi.com/{n}/math?json")
-        return response.json().get("text", "No fun fact available.")
+        try:
+            response = requests.get(f"http://numbersapi.com/{n}/math?json")
+            return response.json().get("text", "No fun fact available.")
+        except:
+            return "No fun fact available."
 
 @app.get("/api/classify-number")
 def classify_number(number: str = Query(..., description="The number to classify")):
     if not number.lstrip("-").isdigit():
         return JSONResponse(
             status_code=400,
-            content={"number": number, "error": True},
+            content={"number": number, "error": True, "message": "Invalid input. Must be an integer."},
         )
     
     number = int(number)
@@ -50,9 +53,9 @@ def classify_number(number: str = Query(..., description="The number to classify
     if is_armstrong(number):
         properties.insert(0, "armstrong")
 
-    digit_sum = sum(int(digit) for digit in str(abs(number)))  
+    digit_sum = int(sum(int(digit) for digit in str(abs(number))))  
 
-    response = {
+    response_data = {
         "number": number,
         "is_prime": is_prime(number),
         "is_perfect": is_perfect(number),
@@ -60,4 +63,5 @@ def classify_number(number: str = Query(..., description="The number to classify
         "digit_sum": digit_sum,  
         "fun_fact": get_fun_fact(number),
     }
-    return response
+
+    return JSONResponse(content=response_data)  
