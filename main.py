@@ -22,8 +22,6 @@ def is_prime(n: int) -> bool:
     return True
 
 def is_perfect(n: int) -> bool:
-    if n <= 0:  # Fix: 0 and negative numbers are not perfect numbers
-        return False
     return sum(i for i in range(1, n) if n % i == 0) == n
 
 def is_armstrong(n: int) -> bool:
@@ -37,8 +35,8 @@ def get_fun_fact(n: int) -> str:
         return f"{n} is an Armstrong number because {equation} = {n}"
     else:
         try:
-            response = requests.get(f"http://numbersapi.com/{n}/math?json")
-            return response.json().get("text", "No fun fact available.")
+            response = requests.get(f"http://numbersapi.com/{n}/math?json", timeout=5)
+            return str(response.json().get("text", "No fun fact available."))
         except:
             return "No fun fact available."
 
@@ -48,7 +46,7 @@ def classify_number(number: str = Query(..., description="The number to classify
         return JSONResponse(
             status_code=400,
             content={"number": number, "error": True, "message": "Invalid input. Must be an integer."},
-            media_type="application/json"
+            media_type="application/json",
         )
     
     number = int(number)
@@ -56,15 +54,15 @@ def classify_number(number: str = Query(..., description="The number to classify
     if is_armstrong(number):
         properties.insert(0, "armstrong")
 
-    digit_sum = sum(int(digit) for digit in str(abs(number)))
+    digit_sum = sum(int(digit) for digit in str(abs(number)))  
 
     response_data = {
         "number": number,
         "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),  
+        "is_perfect": is_perfect(number),
         "properties": properties,
-        "digit_sum": digit_sum,
-        "fun_fact": get_fun_fact(number),
+        "digit_sum": digit_sum,  
+        "fun_fact": get_fun_fact(number),  
     }
 
     return JSONResponse(content=response_data, media_type="application/json")  
