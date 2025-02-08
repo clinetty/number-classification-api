@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 
@@ -36,22 +37,23 @@ def get_fun_fact(n: int) -> str:
         return f"{n} is an Armstrong number because {equation} = {n}"
     else:
         try:
-            response = requests.get(f"http://numbersapi.com/{n}/math?json", timeout=3)
+            response = requests.get(f"http://numbersapi.com/{n}/math?json")
             if response.status_code == 200:
                 data = response.json()
                 return data.get("text", "No fun fact available.")
+            else:
+                return "No fun fact available."
         except Exception:
-            pass
-        return "No fun fact available."
+            return "No fun fact available."
 
 @app.get("/api/classify-number")
 def classify_number(number: str = Query(..., description="The number to classify")):
     if not number.lstrip("-").isdigit():
-        return {
-            "number": number,
-            "error": True,
-            "message": "Invalid input. Must be an integer."
-        }
+        return JSONResponse(
+            status_code=400,
+            content={"number": number, "error": True, "message": "Invalid input. Must be an integer."},
+            media_type="application/json"
+        )
     
     number = int(number)
     properties = ["odd" if number % 2 else "even"]
@@ -69,4 +71,4 @@ def classify_number(number: str = Query(..., description="The number to classify
         "fun_fact": get_fun_fact(number),
     }
 
-    return response_data  #
+    return JSONResponse(content=response_data, media_type="application/json", status_code=200)
