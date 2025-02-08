@@ -38,8 +38,12 @@ def get_fun_fact(n: int) -> str:
     else:
         try:
             response = requests.get(f"http://numbersapi.com/{n}/math?json")
-            return response.json().get("text", "No fun fact available.")
-        except:
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("text", "No fun fact available.")
+            else:
+                return "No fun fact available."
+        except Exception:
             return "No fun fact available."
 
 @app.get("/api/classify-number")
@@ -67,4 +71,4 @@ def classify_number(number: str = Query(..., description="The number to classify
         "fun_fact": get_fun_fact(number),
     }
 
-    return JSONResponse(content=response_data, media_type="application/json")  
+    return JSONResponse(content=response_data, media_type="application/json", status_code=200)
